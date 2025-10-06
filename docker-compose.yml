@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: todo-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: todoapp
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/db-init:/docker-entrypoint-initdb.d
+
+  backend:
+    build: ./backend
+    container_name: todo-backend
+    restart: always
+    env_file:
+      - ./backend/.env
+    environment:
+      DB_HOST: mysql
+      DB_USER: root
+      DB_PASS: 1234
+      DB_NAME: todoapp
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mysql
+
+  frontend:
+    build: ./todo-frontend
+    container_name: todo-frontend
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
